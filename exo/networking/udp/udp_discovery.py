@@ -31,6 +31,7 @@ class BroadcastProtocol(asyncio.DatagramProtocol):
   def connection_made(self, transport):
     sock = transport.get_extra_info("socket")
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    transport.sendto(self.message.encode("utf-8"), ("255.255.255.255", self.broadcast_port))
     transport.sendto(self.message.encode("utf-8"), ("<broadcast>", self.broadcast_port))
 
 
@@ -144,10 +145,11 @@ class UDPDiscovery(Discovery):
 
       peer_host = addr[0]
       peer_port = message["grpc_port"]
-      peer_prio = message["priority"]
-      peer_interface_name = message["interface_name"]
-      peer_interface_type = message["interface_type"]
-      device_capabilities = DeviceCapabilities(**message["device_capabilities"])
+      peer_prio = message.get("priority", 0)
+      peer_interface_name = message.get("interface_name", "unknown")
+      peer_interface_type = message.get("interface_type", "unknown")
+      device_capabilities = DeviceCapabilities(**message.get("device_capabilities", {}))
+    
 
       if peer_id not in self.known_peers or self.known_peers[peer_id][0].addr() != f"{peer_host}:{peer_port}":
         if peer_id in self.known_peers:
@@ -170,7 +172,17 @@ class UDPDiscovery(Discovery):
         if peer_id in self.known_peers: self.known_peers[peer_id] = (self.known_peers[peer_id][0], self.known_peers[peer_id][1], time.time(), peer_prio)
 
   async def task_listen_for_peers(self):
-    await asyncio.get_event_loop().create_datagram_endpoint(lambda: ListenProtocol(self.on_listen_message), local_addr=("0.0.0.0", self.listen_port))
+    # Allow reuse of address for Windows
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if hasattr(socket, 'SO_REUSEPORT'):  # Not available on Windows
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    sock.bind(("0.0.0.0", self.listen_port))
+    
+    await asyncio.get_event_loop().create_datagram_endpoint(
+        lambda: ListenProtocol(self.on_listen_message),
+        sock=sock
+    )
     if DEBUG_DISCOVERY >= 2: print("Started listen task")
 
   async def task_cleanup_peers(self):
