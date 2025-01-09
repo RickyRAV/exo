@@ -130,13 +130,18 @@ echo "Cloning exo repository..."
 git clone https://github.com/RickyRAV/exo
 check_status "Repository cloning"
 
-# Setup virtual environment
+# Setup virtual environment with correct name and command
 cd exo
-mkdir arc_venv
-cd arc_venv
-python3 -m venv venv
-source venv/bin/activate
+mkdir venv_arc
+cd venv_arc
+python3 -m venv .
+source bin/activate
 cd ..
+
+# Install PyTorch before installing exo
+echo "Installing PyTorch..."
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+check_status "PyTorch installation"
 
 # Install package
 echo "Installing exo package..."
