@@ -68,6 +68,7 @@ The current recommended way to install exo is from source.
 
 ### Prerequisites
 
+[GIST GUIDE](https://gist.github.com/denguir/b21aa66ae7fb1089655dd9de8351a202)
 - Python>=3.12.0 is required because of [issues with asyncio](https://github.com/exo-explore/exo/issues/5) in previous versions.
 - For Linux with NVIDIA GPU support (Linux-only, skip if not using Linux or NVIDIA):
   - NVIDIA driver - verify with `nvidia-smi`
