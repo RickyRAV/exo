@@ -98,6 +98,7 @@ CHIP_FLOPS = {
   "NVIDIA TITAN RTX": DeviceFlops(fp32=16.31*TFLOPS, fp16=32.62*TFLOPS, int8=65.24*TFLOPS),
   # GTX 10 series
   "NVIDIA GEFORCE GTX 1050 TI": DeviceFlops(fp32=2.0*TFLOPS, fp16=4.0*TFLOPS, int8=8.0*TFLOPS),
+  "NVIDIA GEFORCE GTX 1060 6GB": DeviceFlops(fp32=4.48*TFLOPS, fp16=8.96*TFLOPS, int8=17.92*TFLOPS),
   "NVIDIA GEFORCE GTX 1070": DeviceFlops(fp32=6.463*TFLOPS, fp16=0.101*TFLOPS, int8=25.852*TFLOPS),
   "NVIDIA GEFORCE GTX 1080": DeviceFlops(fp32=8.873*TFLOPS, fp16=0.138*TFLOPS, int8=35.492*TFLOPS),
   "NVIDIA GEFORCE GTX 1080 TI": DeviceFlops(fp32=11.34*TFLOPS, fp16=0.177*TFLOPS, int8=45.36*TFLOPS),
@@ -184,7 +185,9 @@ async def linux_device_capabilities() -> DeviceCapabilities:
     pynvml.nvmlInit()
     handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     gpu_raw_name = pynvml.nvmlDeviceGetName(handle).upper()
+    print(f"gpu_raw_name={gpu_raw_name}")
     gpu_name = gpu_raw_name.rsplit(" ", 1)[0] if gpu_raw_name.endswith("GB") else gpu_raw_name
+    print(f"gpu_name={gpu_name}")
     gpu_memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
     if DEBUG >= 2: print(f"NVIDIA device {gpu_name=} {gpu_memory_info=}")
